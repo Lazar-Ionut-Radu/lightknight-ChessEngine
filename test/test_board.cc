@@ -6,28 +6,28 @@
 
 TEST_CASE("Board Initialization - Invalid FEN strings", "[UnitTest][BoardInitialization][FEN]") {
     static const std::array<std::pair<std::string, std::string>, 22> tests = {
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"),     std::string("Too few ranks specified")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"), std::string("Too many ranks specified")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/9/9/PPPPPPPppP/RNBQBNR w KQkq - 0 1"),   std::string("Too many files specified, last rank")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/9/9/PPPPPPPppP/RNBQBNRr w KQkq - 0 1"),  std::string("Too many files specified")),
-        make_pair(std::string("rnbqkbnr/pppp/8/8/5/PPPPPPPP/2B3 w KQkq - 0 1"),             std::string("Too few files specified")),
-        make_pair(std::string("rnbqkbnr//8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"),             std::string("No piece specified on file")),
-        make_pair(std::string("rnblkbnr/pppppppp/8/8/8/1p6/PrrPPjPP/RNBQWNR w KQkq - 0 1"), std::string("Invalid pieces")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR KQkq - 0 1"),       std::string("No turn char")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR wwb KQkq - 0 1"),   std::string("Too many turn chars")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR t KQkq - 0 1"),     std::string("Invalid turn char")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w c - 0 1"),        std::string("Invalid castling char")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQ- - 0 1"),      std::string("Invalid castling chars with -")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w 0 1"),            std::string("No castling chars")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkqK - 0 1"),    std::string("Too many castling chars")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkq z3 0 1"),    std::string("Wrong en passant file")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w - e9 0 1"),       std::string("Wrong en passant rank")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w - e28z 0 1"),     std::string("Too many chars en passant")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w - a 0 1"),        std::string("Too few chars en passant")),
-        make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkq - plm gcc"), std::string("Invalid halfmove/fullmove")),
-        make_pair(std::string("8/8/8/8/8/8/8/8 w - -"),                                     std::string("Too few fields specified")),
-        make_pair(std::string("8/8/8/8/8/8/8/8 w K - 0 1 10"),                              std::string("Too many fields specified")),
-        make_pair(std::string("bnbnn/153/nn22 ffff as/2.1//"),                              std::string("Junk FEN string")),     
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"),     std::string("Too few ranks specified")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"), std::string("Too many ranks specified")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/9/9/PPPPPPPppP/RNBQBNR w KQkq - 0 1"),   std::string("Too many files specified, last rank")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/9/9/PPPPPPPppP/RNBQBNRr w KQkq - 0 1"),  std::string("Too many files specified")),
+        std::make_pair(std::string("rnbqkbnr/pppp/8/8/5/PPPPPPPP/2B3 w KQkq - 0 1"),             std::string("Too few files specified")),
+        std::make_pair(std::string("rnbqkbnr//8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"),             std::string("No piece specified on file")),
+        std::make_pair(std::string("rnblkbnr/pppppppp/8/8/8/1p6/PrrPPjPP/RNBQWNR w KQkq - 0 1"), std::string("Invalid pieces")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR KQkq - 0 1"),       std::string("No turn char")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR wwb KQkq - 0 1"),   std::string("Too many turn chars")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR t KQkq - 0 1"),     std::string("Invalid turn char")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w c - 0 1"),        std::string("Invalid castling char")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQ- - 0 1"),      std::string("Invalid castling chars with -")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w 0 1"),            std::string("No castling chars")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkqK - 0 1"),    std::string("Too many castling chars")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkq z3 0 1"),    std::string("Wrong en passant file")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w - e9 0 1"),       std::string("Wrong en passant rank")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w - e28z 0 1"),     std::string("Too many chars en passant")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w - a 0 1"),        std::string("Too few chars en passant")),
+        std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkq - plm gcc"), std::string("Invalid halfmove/fullmove")),
+        std::make_pair(std::string("8/8/8/8/8/8/8/8 w - -"),                                     std::string("Too few fields specified")),
+        std::make_pair(std::string("8/8/8/8/8/8/8/8 w K - 0 1 10"),                              std::string("Too many fields specified")),
+        std::make_pair(std::string("bnbnn/153/nn22 ffff as/2.1//"),                              std::string("Junk FEN string")),     
     };
 
     for (const auto& [fen, description] : tests) {
@@ -76,7 +76,7 @@ void CheckBoard(const lightknight::engine::Board& actual, const lightknight::eng
 
 TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitialization][FEN]") {
     static const std::array<std::pair<std::string, lightknight::engine::Board>, 3> tests = {
-        make_pair(
+        std::make_pair(
             std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
             lightknight::engine::Board::FromRaw(
                 {
@@ -99,7 +99,7 @@ TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitializa
                 -1,
                 0,
                 1)),
-        make_pair(
+        std::make_pair(
             std::string("r3k2r/pp1q1pp1/2p1pn2/4B2p/2BP4/8/PPP1QPP1/2KR3R b kq - 1 16"),
             lightknight::engine::Board::FromRaw(
                 {
@@ -123,7 +123,7 @@ TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitializa
                 -1,
                 1,
                 16)),
-        make_pair(
+        std::make_pair(
             std::string("6k1/5pbp/6p1/2pNp3/P1P1P3/5P2/1P3KPP/8 b - a3 0 30"),
             lightknight::engine::Board::FromRaw(
                 {

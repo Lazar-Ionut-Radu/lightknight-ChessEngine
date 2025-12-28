@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-namespace lightknight::engine {
+namespace lightknight {
     void Board::FromFEN(const std::string& fen) {
         // Validate the format of a fen string
         std::regex fen_regex(
@@ -35,13 +35,13 @@ namespace lightknight::engine {
         std::string fullmove_str   = match[6];
 
         // Setup the pieces on the board.
-        static const std::unordered_map<char, lightknight::engine::Pieces> char_to_piece = {
-            {'P', lightknight::engine::Pieces::kWhitePawn}, {'p', lightknight::engine::Pieces::kBlackPawn},
-            {'N', lightknight::engine::Pieces::kWhiteKnight}, {'n', lightknight::engine::Pieces::kBlackKnight},
-            {'B', lightknight::engine::Pieces::kWhiteBishop}, {'b', lightknight::engine::Pieces::kBlackBishop},
-            {'R', lightknight::engine::Pieces::kWhiteRook}, {'r', lightknight::engine::Pieces::kBlackRook},
-            {'Q', lightknight::engine::Pieces::kWhiteQueen}, {'q', lightknight::engine::Pieces::kBlackQueen},
-            {'K', lightknight::engine::Pieces::kWhiteKing}, {'k', lightknight::engine::Pieces::kBlackKing},
+        static const std::unordered_map<char, lightknight::Pieces> char_to_piece = {
+            {'P', lightknight::Pieces::kWhitePawn}, {'p', lightknight::Pieces::kBlackPawn},
+            {'N', lightknight::Pieces::kWhiteKnight}, {'n', lightknight::Pieces::kBlackKnight},
+            {'B', lightknight::Pieces::kWhiteBishop}, {'b', lightknight::Pieces::kBlackBishop},
+            {'R', lightknight::Pieces::kWhiteRook}, {'r', lightknight::Pieces::kBlackRook},
+            {'Q', lightknight::Pieces::kWhiteQueen}, {'q', lightknight::Pieces::kBlackQueen},
+            {'K', lightknight::Pieces::kWhiteKing}, {'k', lightknight::Pieces::kBlackKing},
         };
         int file = 0, rank = 7;
         for (int i = 0; i < placement_str.size(); ++i) {
@@ -57,7 +57,7 @@ namespace lightknight::engine {
                 // Empty spaces
                 if (placement_str[i] < 'A') {
                     for (int num = 1; num <= (int)(placement_str[i] - '0'); ++num) {
-                        this->bitboards[static_cast<int>(lightknight::engine::Pieces::kEmpty)] |= 1ULL << (8*rank + file);
+                        this->bitboards[static_cast<int>(lightknight::Pieces::kEmpty)] |= 1ULL << (8*rank + file);
                         file++;
 
                         if (file > 8)
@@ -79,25 +79,25 @@ namespace lightknight::engine {
 
         // Setup the turn
         if (turn_str[0] == 'w')
-            this->turn = lightknight::engine::Colors::kWhite;
+            this->turn = lightknight::Colors::kWhite;
         else
-            this->turn = lightknight::engine::Colors::kBlack;
+            this->turn = lightknight::Colors::kBlack;
         
         // Setup the castling rights
         if (castling_str[0] != '-') {
             for (char c : castling_str) {
                 switch (c) {
                     case 'K':
-                        this->castling |= static_cast<uint8_t>(lightknight::engine::Castles::kWhiteKingSide);
+                        this->castling |= static_cast<uint8_t>(lightknight::Castles::kWhiteKingSide);
                         break;
                     case 'Q':
-                        this->castling |= static_cast<uint8_t>(lightknight::engine::Castles::kWhiteQueenSide);
+                        this->castling |= static_cast<uint8_t>(lightknight::Castles::kWhiteQueenSide);
                         break;
                     case 'k':
-                        this->castling |= static_cast<uint8_t>(lightknight::engine::Castles::kBlackKingSide);
+                        this->castling |= static_cast<uint8_t>(lightknight::Castles::kBlackKingSide);
                         break;
                     case 'q':
-                        this->castling |= static_cast<uint8_t>(lightknight::engine::Castles::kBlackQueenSide);
+                        this->castling |= static_cast<uint8_t>(lightknight::Castles::kBlackQueenSide);
                         break;
                 }
             }
@@ -153,6 +153,6 @@ namespace lightknight::engine {
         this->en_passant = 0ULL;
         this->halfmoves = 0;
         this->fullmoves = 1;
-        this->turn = lightknight::engine::Colors::kWhite;
+        this->turn = lightknight::Colors::kWhite;
     }
-} // namespace lightknight::engine
+} // namespace lightknight

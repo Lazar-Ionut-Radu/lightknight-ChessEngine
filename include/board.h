@@ -5,7 +5,7 @@
 #include <array>
 #include <string>
 
-namespace lightknight::engine {
+namespace lightknight {
     const size_t kNumPieces = 13;
     enum class Pieces : uint8_t {
         kWhitePawn = 0,
@@ -42,7 +42,7 @@ namespace lightknight::engine {
         // Array of bitboards, one for each piece type, specifying their positions on the table.
         std::array<uint64_t, kNumPieces> bitboards;
         uint8_t castling;
-        lightknight::engine::Colors turn;
+        lightknight::Colors turn;
         // Specifies the target square (if any) an en passant capture can be done.
         uint64_t en_passant;
         // Counts the number of half moves (one side) since the last capture or pawn advancement.
@@ -71,6 +71,6 @@ namespace lightknight::engine {
         );
 
     };
-} // namespace lightknight::engine
+} // namespace lightknight
 
 #endif // LIGHTKNIGHT_BOARD_H

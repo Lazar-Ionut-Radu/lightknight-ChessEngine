@@ -33,19 +33,19 @@ TEST_CASE("Board Initialization - Invalid FEN strings", "[UnitTest][BoardInitial
     for (const auto& [fen, description] : tests) {
         SECTION(fen) {
             INFO("Description: " << description);
-            REQUIRE_THROWS_AS(lightknight::engine::Board(fen), lightknight::exceptions::FENException);
+            REQUIRE_THROWS_AS(lightknight::Board(fen), lightknight::exceptions::FENException);
         }
     }
 }
 
-void CheckBoard(const lightknight::engine::Board& actual, const lightknight::engine::Board& expected) {
-    std::array<std::string, lightknight::engine::kNumPieces> bitboard_names = {
+void CheckBoard(const lightknight::Board& actual, const lightknight::Board& expected) {
+    std::array<std::string, lightknight::kNumPieces> bitboard_names = {
         "White Pawn Bitboard", "White Knight Bitboard", "White Bishop Bitboard", "White Rook Bitboard",
         "White Queen Bitboard", "White King Bitboard", "Black Pawn Bitboard", "Black Knight Bitboard",
         "Black Bishop Bitboard", "Black Rook Bitboard", "Black Queen Bitboard", "Black King Bitboard",
         "Empty Squares Bitboard"
     };
-    for (std::size_t idx=0; idx < lightknight::engine::kNumPieces; ++idx) {
+    for (std::size_t idx=0; idx < lightknight::kNumPieces; ++idx) {
         SECTION(bitboard_names[idx]) {
             INFO("Expected: 0x" << std::hex << expected.bitboards[idx]);
             INFO("Actual: 0x" << std::hex << actual.bitboards[idx]);
@@ -75,10 +75,10 @@ void CheckBoard(const lightknight::engine::Board& actual, const lightknight::eng
 }
 
 TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitialization][FEN]") {
-    static const std::array<std::pair<std::string, lightknight::engine::Board>, 3> tests = {
+    static const std::array<std::pair<std::string, lightknight::Board>, 3> tests = {
         std::make_pair(
             std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
-            lightknight::engine::Board::FromRaw(
+            lightknight::Board::FromRaw(
                 {
                     0x000000000000FF00ULL,
                     0x0000000000000042ULL,
@@ -94,14 +94,14 @@ TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitializa
                     0x1000000000000000ULL,
                     0x0000FFFFFFFF0000ULL
                 },
-                lightknight::engine::Colors::kWhite,
+                lightknight::Colors::kWhite,
                 0b1111,
                 -1,
                 0,
                 1)),
         std::make_pair(
             std::string("r3k2r/pp1q1pp1/2p1pn2/4B2p/2BP4/8/PPP1QPP1/2KR3R b kq - 1 16"),
-            lightknight::engine::Board::FromRaw(
+            lightknight::Board::FromRaw(
                 {
                     0x0000000008006700ULL,
                     0x0000000000000000ULL,
@@ -118,14 +118,14 @@ TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitializa
                     0x6e94cb6ff3ff8873ULL
 
                 },
-                lightknight::engine::Colors::kBlack,
+                lightknight::Colors::kBlack,
                 0b1100,
                 -1,
                 1,
                 16)),
         std::make_pair(
             std::string("6k1/5pbp/6p1/2pNp3/P1P1P3/5P2/1P3KPP/8 b - a3 0 30"),
-            lightknight::engine::Board::FromRaw(
+            lightknight::Board::FromRaw(
                 {
                     0x000000001520c200ULL,
                     0x0000000800000000ULL,
@@ -141,7 +141,7 @@ TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitializa
                     0x4000000000000000ULL,
                     0xbf1fbfe3eadf1dffULL
                 },
-                lightknight::engine::Colors::kBlack,
+                lightknight::Colors::kBlack,
                 0b0000,
                 16,
                 0,
@@ -150,8 +150,8 @@ TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitializa
 
     for (auto& test : tests) {
         const std::string& fen_str = test.first;
-        const lightknight::engine::Board& expected_board = test.second;
-        lightknight::engine::Board board;
+        const lightknight::Board& expected_board = test.second;
+        lightknight::Board board;
             
         SECTION(fen_str) {    
             REQUIRE_NOTHROW(board.FromFEN(fen_str));

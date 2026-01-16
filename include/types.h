@@ -1,11 +1,41 @@
-#ifndef LIGHTKNIGHT_BITBOARD_H
-#define LIGHTKNIGHT_BITBOARD_H
+#ifndef LIGHTKNIGHT_TYPES_H
+#define LIGHTKNIGHT_TYPES_H
 
-#include <bits/stdc++.h>
 #include <cstdint>
-#include <array>
+#include <cstddef>
 
-namespace lightknight::bitboard {
+namespace lightknight {
+    const size_t kNumPieces = 13;
+    enum class Pieces : uint8_t {
+        kWhitePawn = 0,
+        kWhiteKnight,
+        kWhiteBishop,
+        kWhiteRook,
+        kWhiteQueen,
+        kWhiteKing,
+        kBlackPawn,
+        kBlackKnight,
+        kBlackBishop,
+        kBlackRook,
+        kBlackQueen,
+        kBlackKing,
+        kEmpty
+    };
+
+    const size_t kNumColors = 2;
+    enum class Colors : uint8_t {
+        kWhite = 0,
+        kBlack
+    };
+
+    const size_t kNumCastles = 4;
+    enum class Castles : uint8_t {
+        kWhiteQueenSide = 1 << 0,
+        kWhiteKingSide = 1 << 1,
+        kBlackQueenSide = 1 << 2,
+        kBlackKingSide = 1 << 3
+    };
+
     // File / rank bitboard masks.
     static constexpr uint64_t kFileA = 0x0101010101010101ULL;
     static constexpr uint64_t kFileB = kFileA << 1;
@@ -24,17 +54,7 @@ namespace lightknight::bitboard {
     static constexpr uint64_t kRank7 = kRank1 << 48;
     static constexpr uint64_t kRank8 = kRank1 << 56;
 
-    // Directional moving, handles edges correctly.
-    inline constexpr uint64_t North(uint64_t bitboard) {return bitboard << 8;}
-    inline constexpr uint64_t South(uint64_t bitboard) {return bitboard >> 8;}
-    inline constexpr uint64_t East(uint64_t bitboard) {return (bitboard & ~kFileH) << 1;}
-    inline constexpr uint64_t West(uint64_t bitboard) {return (bitboard & ~kFileA) >> 1;}
-    inline constexpr uint64_t NorthEast(uint64_t bitboard) {return North(East(bitboard));}
-    inline constexpr uint64_t SouthEast(uint64_t bitboard) {return South(East(bitboard));}
-    inline constexpr uint64_t SouthWest(uint64_t bitboard) {return South(West(bitboard));}
-    inline constexpr uint64_t NorthWest(uint64_t bitboard) {return North(West(bitboard));}
-
-    // Squares
+    const size_t kNumSquares = 64;
     enum class Square : uint8_t {
         A1, B1, C1, D1, E1, F1, G1, H1,
         A2, B2, C2, D2, E2, F2, G2, H2,
@@ -45,7 +65,17 @@ namespace lightknight::bitboard {
         A7, B7, C7, D7, E7, F7, G7, H7,
         A8, B8, C8, D8, E8, F8, G8, H8,
     };
-    
+
+    // Directional moving, handles edges correctly.
+    inline constexpr uint64_t North(uint64_t bitboard) {return bitboard << 8;}
+    inline constexpr uint64_t South(uint64_t bitboard) {return bitboard >> 8;}
+    inline constexpr uint64_t East(uint64_t bitboard) {return (bitboard & ~kFileH) << 1;}
+    inline constexpr uint64_t West(uint64_t bitboard) {return (bitboard & ~kFileA) >> 1;}
+    inline constexpr uint64_t NorthEast(uint64_t bitboard) {return North(East(bitboard));}
+    inline constexpr uint64_t SouthEast(uint64_t bitboard) {return South(East(bitboard));}
+    inline constexpr uint64_t SouthWest(uint64_t bitboard) {return South(West(bitboard));}
+    inline constexpr uint64_t NorthWest(uint64_t bitboard) {return North(West(bitboard));}
+
     // For log2 of power of 2.
     static const uint64_t kDeBruijeMagic = 0x03F79D71B4CB0A89ULL;
     static const std::array<uint8_t, 64> kDeBruije = {
@@ -59,7 +89,7 @@ namespace lightknight::bitboard {
         25, 14, 19, 9, 13,  8,  7,  6
     };
     inline uint64_t LSB(uint64_t bitboard) {return bitboard & -bitboard;}
-    
+
     inline size_t SetBitsCount(uint64_t bitboard) {
         size_t count = 0;
         while (bitboard) {
@@ -78,7 +108,6 @@ namespace lightknight::bitboard {
     inline constexpr uint64_t SquareToBitboard(Square square) { return 1ULL << static_cast<uint8_t>(square);}
     inline constexpr int Rank(Square square) {return static_cast<int>(square) / 8;}
     inline constexpr int File(Square square) {return static_cast<int>(square) % 8;}
-    
-} // namespace lightknight::bitboard
+}; // namespace lightknight
 
-#endif // LIGHTKNIGHT_BITBOARD_H
+#endif //LIGHTKNIGHT_TYPES_H

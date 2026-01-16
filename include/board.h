@@ -4,39 +4,9 @@
 #include <cstdint>
 #include <array>
 #include <string>
+#include "types.h"
 
 namespace lightknight {
-    const size_t kNumPieces = 13;
-    enum class Pieces : uint8_t {
-        kWhitePawn = 0,
-        kWhiteKnight,
-        kWhiteBishop,
-        kWhiteRook,
-        kWhiteQueen,
-        kWhiteKing,
-        kBlackPawn,
-        kBlackKnight,
-        kBlackBishop,
-        kBlackRook,
-        kBlackQueen,
-        kBlackKing,
-        kEmpty
-    };
-
-    const size_t kNumColors = 2;
-    enum class Colors : uint8_t {
-        kWhite = 0,
-        kBlack
-    };
-
-    const size_t kNumCastles = 4;
-    enum class Castles : uint8_t {
-        kWhiteQueenSide = 1 << 0,
-        kWhiteKingSide = 1 << 1,
-        kBlackQueenSide = 1 << 2,
-        kBlackKingSide = 1 << 3
-    };
-
     class Board {
     public:
         // Array of bitboards, one for each piece type, specifying their positions on the table.

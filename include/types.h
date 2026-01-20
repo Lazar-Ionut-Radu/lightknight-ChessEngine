@@ -5,7 +5,7 @@
 #include <cstddef>
 
 namespace lightknight {
-    const size_t kNumPieces = 13;
+    inline constexpr size_t kNumPieces = 13;
     enum class Pieces : uint8_t {
         kWhitePawn = 0,
         kWhiteKnight,
@@ -22,13 +22,13 @@ namespace lightknight {
         kEmpty
     };
 
-    const size_t kNumColors = 2;
+    inline constexpr size_t kNumColors = 2;
     enum class Colors : uint8_t {
         kWhite = 0,
         kBlack
     };
 
-    const size_t kNumCastles = 4;
+    inline constexpr size_t kNumCastles = 4;
     enum class Castles : uint8_t {
         kWhiteQueenSide = 1 << 0,
         kWhiteKingSide = 1 << 1,
@@ -67,14 +67,14 @@ namespace lightknight {
     };
 
     // Directional moving, handles edges correctly.
-    inline constexpr uint64_t North(uint64_t bitboard) {return bitboard << 8;}
-    inline constexpr uint64_t South(uint64_t bitboard) {return bitboard >> 8;}
-    inline constexpr uint64_t East(uint64_t bitboard) {return (bitboard & ~kFileH) << 1;}
-    inline constexpr uint64_t West(uint64_t bitboard) {return (bitboard & ~kFileA) >> 1;}
-    inline constexpr uint64_t NorthEast(uint64_t bitboard) {return North(East(bitboard));}
-    inline constexpr uint64_t SouthEast(uint64_t bitboard) {return South(East(bitboard));}
-    inline constexpr uint64_t SouthWest(uint64_t bitboard) {return South(West(bitboard));}
-    inline constexpr uint64_t NorthWest(uint64_t bitboard) {return North(West(bitboard));}
+    constexpr uint64_t North(uint64_t bitboard) {return bitboard << 8;}
+    constexpr uint64_t South(uint64_t bitboard) {return bitboard >> 8;}
+    constexpr uint64_t East(uint64_t bitboard) {return (bitboard & ~kFileH) << 1;}
+    constexpr uint64_t West(uint64_t bitboard) {return (bitboard & ~kFileA) >> 1;}
+    constexpr uint64_t NorthEast(uint64_t bitboard) {return North(East(bitboard));}
+    constexpr uint64_t SouthEast(uint64_t bitboard) {return South(East(bitboard));}
+    constexpr uint64_t SouthWest(uint64_t bitboard) {return South(West(bitboard));}
+    constexpr uint64_t NorthWest(uint64_t bitboard) {return North(West(bitboard));}
 
     // For log2 of power of 2.
     static const uint64_t kDeBruijeMagic = 0x03F79D71B4CB0A89ULL;
@@ -104,10 +104,69 @@ namespace lightknight {
         return static_cast<Square>(kDeBruije[(bitboard * kDeBruijeMagic) >> 58]);
     }
 
-    inline Square LSBSquare(uint64_t bitboard) {return BitboardToSquare(LSB(bitboard));};
-    inline constexpr uint64_t SquareToBitboard(Square square) { return 1ULL << static_cast<uint8_t>(square);}
-    inline constexpr int Rank(Square square) {return static_cast<int>(square) / 8;}
-    inline constexpr int File(Square square) {return static_cast<int>(square) % 8;}
+    inline Square LSBSquare(uint64_t bitboard) {return BitboardToSquare(LSB(bitboard));}
+    constexpr uint64_t SquareToBitboard(Square square) { return 1ULL << static_cast<uint8_t>(square);}
+    constexpr int Rank(Square square) {return static_cast<int>(square) / 8;}
+    constexpr int File(Square square) {return static_cast<int>(square) % 8;}
+
+    enum class PromotionPieceType : uint16_t {
+        kKnight,
+        kBishop = 1 << 12,
+        kRook = 2 << 12,
+        kQueen = 3 << 12
+    };
+
+    enum class MoveType : uint16_t {
+        kNormal,
+        kPromotion = 1 << 14,
+        kCastling = 2 << 14,
+        kEnPassant = 3 << 14
+    };
+
+    // bits 0-5: origin square (value from 0 to 63)
+    // bits 6-11: destination square (value from 0 to 63)
+    // bits 12-13: promotion piece (defined above knight=0, bishop=1, rook=2, queen=3)
+    // bits 14-15: move type flag (defined above promotion=1, castling=2, en_passant=3)
+    class Move {
+    public:
+        uint16_t data;
+
+        // Constructors
+        constexpr explicit Move(uint16_t data) : data(data) {};
+        constexpr Move(Square origin, Square destination) 
+            : data(static_cast<uint16_t>(origin) + (static_cast<uint16_t>(destination) << 6)) {}
+
+        template<MoveType T>
+        constexpr Move(Square origin, Square destination, PromotionPieceType piece = PromotionPieceType::kKnight)
+            : data(static_cast<uint16_t>(origin)
+                + (static_cast<uint16_t>(destination) << 6)
+                + static_cast<uint16_t>(piece)
+                + static_cast<uint16_t>(T)) {}
+        
+        // Static functions to create Move objects.
+        template<MoveType T>
+        static constexpr Move Make(Square origin, Square destination, PromotionPieceType piece = PromotionPieceType::kKnight) {
+            return Move(static_cast<uint16_t>(origin) + (static_cast<uint16_t>(destination) << 6)
+                + static_cast<uint16_t>(piece) + static_cast<uint16_t>(T)); 
+        };
+
+        // Operator overloads
+        constexpr bool operator==(const Move& move) const { return data == move.data; }
+        constexpr bool operator!=(const Move& move) const { return data != move.data; }  
+        constexpr explicit operator bool() const { return data != 0; }
+
+        // Methods to return certain parts of the move.
+        constexpr Square GetOriginSquare() const { return static_cast<Square>(data & 0x3F); }
+        constexpr Square GetDestinationSquare() const { return static_cast<Square>((data >> 6) & 0x3F); }
+        constexpr PromotionPieceType GetPromotionPieceType() const { return static_cast<PromotionPieceType>(((data >> 12) & 3) + static_cast<uint16_t>(PromotionPieceType::kKnight)); } 
+        constexpr MoveType GetMoveType() const { return static_cast<MoveType>(data & (3 << 14)); } 
+        
+        constexpr uint64_t GetOriginBitboard() const { return SquareToBitboard(this->GetOriginSquare()); }
+        constexpr uint64_t GetDestionationBitboard() const { return 0; }
+
+        template<Colors T>
+        constexpr Pieces GetPromotionPiece() const { return static_cast<Pieces>((1 + static_cast<uint16_t>(T)) * (1 + (static_cast<uint16_t>(this->GetPromotionPieceType()) >> 12))); }
+    };
 }; // namespace lightknight
 
 #endif //LIGHTKNIGHT_TYPES_H

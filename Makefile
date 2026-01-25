@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX := g++
-CXXFLAGS := -std=c++20 -Wall -Wextra -Iinclude
+CXXFLAGS := -std=c++20 -Wall -Wextra -Iinclude -fconstexpr-ops-limit=200000000
 BUILD_DIR := build
 TEST_LDFLAGS := -lCatch2Main -lCatch2
 
@@ -41,3 +41,20 @@ test: $(TEST_EXE)
 # Clean build directory
 clean:
 	rm -rf $(BUILD_DIR)
+
+# -------------------------------------------------------------------
+# Magics generator executable
+# -------------------------------------------------------------------
+MAGICS_SRC := helpers/magics-gen/magics_gen.cc
+MAGICS_OBJ := $(BUILD_DIR)/helpers/magics-gen/magics_gen.o
+MAGICS_EXE := $(BUILD_DIR)/magics-gen
+
+$(MAGICS_OBJ): $(MAGICS_SRC)
+	mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(MAGICS_EXE): $(MAGICS_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+magics: $(MAGICS_EXE)
+	./$(MAGICS_EXE)

@@ -3,6 +3,8 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <array>
+#include <iostream>
 
 namespace lightknight {
     inline constexpr size_t kNumPieces = 13;
@@ -36,6 +38,18 @@ namespace lightknight {
         kBlackKingSide = 1 << 3
     };
 
+    inline void PrintBitboard(uint64_t bitboard) {
+        for (int rank = 7; rank >= 0; rank--) {
+            for (int file = 0; file <= 7; file++) {
+                if (bitboard & (1ULL << (8*rank + file)))
+                    std::cout << "O";
+                else
+                    std::cout << "-";
+            }
+            std::cout << std::endl;
+        }
+    }
+
     // File / rank bitboard masks.
     static constexpr uint64_t kFileA = 0x0101010101010101ULL;
     static constexpr uint64_t kFileB = kFileA << 1;
@@ -54,7 +68,7 @@ namespace lightknight {
     static constexpr uint64_t kRank7 = kRank1 << 48;
     static constexpr uint64_t kRank8 = kRank1 << 56;
 
-    const size_t kNumSquares = 64;
+    inline constexpr size_t kNumSquares = 64;
     enum class Square : uint8_t {
         A1, B1, C1, D1, E1, F1, G1, H1,
         A2, B2, C2, D2, E2, F2, G2, H2,
@@ -105,10 +119,11 @@ namespace lightknight {
     }
 
     inline Square LSBSquare(uint64_t bitboard) {return BitboardToSquare(LSB(bitboard));}
-    constexpr uint64_t SquareToBitboard(Square square) { return 1ULL << static_cast<uint8_t>(square);}
+    constexpr uint64_t SquareToBitboard(Square square) { return (1ULL << static_cast<uint8_t>(square));}
     constexpr int Rank(Square square) {return static_cast<int>(square) / 8;}
     constexpr int File(Square square) {return static_cast<int>(square) % 8;}
-
+    constexpr Square GetSquare(int rank, int file) {return static_cast<Square>(8*rank + file);}
+    
     enum class PromotionPieceType : uint16_t {
         kKnight,
         kBishop = 1 << 12,

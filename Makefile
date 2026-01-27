@@ -16,7 +16,7 @@ OBJ_TEST := $(patsubst %.cc,$(BUILD_DIR)/%.o,$(SRC_TEST) $(TEST_SRC))
 
 # Executables
 ENGINE_EXE := $(BUILD_DIR)/lightknight
-TEST_EXE := $(BUILD_DIR)/test_board
+TEST_EXE := $(BUILD_DIR)/tests
 
 # Default target: build engine and tests
 all: $(ENGINE_EXE) $(TEST_EXE)

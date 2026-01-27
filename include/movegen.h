@@ -106,6 +106,28 @@ namespace lightknight::movegen {
         return knight_attacks;
     }
     
+    consteval std::array<uint64_t, kNumSquares> PrecomputeKingAttacks() {
+        std::array<uint64_t, kNumSquares> king_attacks = {0ULL};
+        
+        for (uint8_t i = 0; i < kNumSquares; i++) {
+            uint64_t bb = SquareToBitboard(static_cast<Square>(i));
+
+            uint64_t attacks = 0ULL;
+            attacks |= North(bb);
+            attacks |= NorthEast(bb);
+            attacks |= East(bb);
+            attacks |= SouthEast(bb);
+            attacks |= South(bb);
+            attacks |= SouthWest(bb);
+            attacks |= West(bb);
+            attacks |= NorthWest(bb);
+
+            king_attacks[i] = attacks;
+        }
+
+        return king_attacks;
+    }
+
     inline constexpr std::array<uint64_t, kNumSquares> kBishopRelevantOccupancy = PrecomputeBishopRelevantOccupancy();
     inline constexpr std::array<uint64_t, kNumSquares> kRookRelevantOccupancy = PrecomputeRookRelevantOccupancy();
     
@@ -260,10 +282,12 @@ namespace lightknight::movegen {
     inline constexpr std::array<uint64_t, kNumSquares> kKnightAttacks = PrecomputeKnightAttacks();
     inline constexpr std::array<uint64_t, kBishopAttacksArraySize> kBishopAttacks = PrecomputeBishopAttacks();
     inline constexpr std::array<uint64_t, kRookAttacksArraySize> kRookAttacks = PrecomputeRookAttacks();
+    inline constexpr std::array<uint64_t, kNumSquares> kKingAttacks = PrecomputeKingAttacks();
 
-    // Functions to get attackers.
+    // Functions to get attacks.
     uint64_t BishopAttackBitboard(Square sq, uint64_t blockers_bitboard);
     uint64_t RookAttackBitboard(Square sq, uint64_t blockers_bitboard);
+    uint64_t QueenAttackBitboard(Square sq, uint64_t blockers_bitboard);
 } // namespace lightknight::movegen
 
 #endif // LIGHTKNIGHT_MOVEGEN_H

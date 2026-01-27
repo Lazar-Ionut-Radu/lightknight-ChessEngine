@@ -39,4 +39,7 @@ namespace lightknight::movegen {
         return kRookAttacks[magics_hash];
     }
 
+    uint64_t QueenAttackBitboard(Square sq, uint64_t blockers_bitboard) {
+        return BishopAttackBitboard(sq, blockers_bitboard) | RookAttackBitboard(sq, blockers_bitboard);
+    }
 } // namespace lightknight::movegen

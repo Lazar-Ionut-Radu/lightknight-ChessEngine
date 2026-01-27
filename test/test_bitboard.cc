@@ -3,7 +3,7 @@
 #include <array>
 #include <types.h>
 
-TEST_CASE("Bitboard - Directional Moving", "[UnitTest][Bitboard]") {
+TEST_CASE("Bitboard Directional Moving", "[UnitTest][Bitboard]") {
     const std::array<std::pair<uint64_t, uint64_t>, 3> tests_north = {
         std::make_pair(0x80000000000ULL, 0x8000000000000ULL),
         std::make_pair(0x20000ULL, 0x2000000ULL),
@@ -96,7 +96,7 @@ struct LSBTestStruct {
     size_t set_bits_cnt;
 };
 
-TEST_CASE("Bitboard - Least Significant Bit", "[UnitTest][Bitboard]") {
+TEST_CASE("Bitboard Least Significant Bit", "[UnitTest][Bitboard]") {
     const std::array<std::pair<uint64_t, LSBTestStruct>, 5> tests = {
         std::make_pair(0x1ULL, LSBTestStruct{0x1ULL, lightknight::Square::A1, 1}),
         std::make_pair(0x4000000ULL, LSBTestStruct{0x4000000ULL, lightknight::Square::C4, 1}),

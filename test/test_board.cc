@@ -4,7 +4,7 @@
 #include "exceptions.h"
 #include <array>
 
-TEST_CASE("Board Initialization - Invalid FEN strings", "[UnitTest][BoardInitialization][FEN]") {
+TEST_CASE("Board Initialization Invalid FEN strings", "[UnitTest][BoardInitialization][FEN]") {
     static const std::array<std::pair<std::string, std::string>, 22> tests = {
         std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"),     std::string("Too few ranks specified")),
         std::make_pair(std::string("rnbqkbnr/pppppppp/8/8/8/8/8/PPPPPPPP/RNBQBNR w KQkq - 0 1"), std::string("Too many ranks specified")),
@@ -74,7 +74,7 @@ void CheckBoard(const lightknight::Board& actual, const lightknight::Board& expe
     }
 }
 
-TEST_CASE("Board Initialization - Valid FEN String", "[UnitTest][BoardInitialization][FEN]") {
+TEST_CASE("Board Initialization Valid FEN String", "[UnitTest][BoardInitialization][FEN]") {
     static const std::array<std::pair<std::string, lightknight::Board>, 3> tests = {
         std::make_pair(
             std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),

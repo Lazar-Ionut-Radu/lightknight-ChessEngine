@@ -160,7 +160,7 @@ namespace lightknight {
         // Methods to return certain parts of the move.
         constexpr Square GetOriginSquare() const { return (Square)(data & 0x3F); }
         constexpr Square GetDestinationSquare() const { return (Square)((data >> 6) & 0x3F); }
-        constexpr PromotionPieceType GetPromotionPieceType() const { return (PromotionPieceType)(((data >> 12) & 3) + PromotionPieceType::kKnight); } 
+        constexpr PromotionPieceType GetPromotionPieceType() const { return (PromotionPieceType)(data & (3 << 12)); } 
         constexpr MoveType GetMoveType() const { return (MoveType)(data & (3 << 14)); } 
         
         constexpr uint64_t GetOriginBitboard() const { return SquareToBitboard(this->GetOriginSquare()); }
@@ -171,7 +171,7 @@ namespace lightknight {
     std::ostream& operator<<(std::ostream& os, const lightknight::Move& move);
 
     // Debug
-    inline void PrintBitboard(uint64_t bitboard);
+    void PrintBitboard(uint64_t bitboard);
     
 }; // namespace lightknight
 

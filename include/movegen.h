@@ -52,7 +52,7 @@ namespace lightknight::movegen {
             SquareToBitboard(Square::F8) | SquareToBitboard(Square::G8),
             SquareToBitboard(Square::F8) | SquareToBitboard(Square::G8)
         },
-        {}, {}, {}, {}, {}, {}, {}
+        {}, {}, {}, {}, {}, {}, {} // unused
     };
 
     // The shift and magics for precomputing sliding piece attacks. Find out more at:

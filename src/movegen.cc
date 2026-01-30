@@ -29,7 +29,6 @@ namespace lightknight::movegen {
         return BishopAttackBitboard(sq, blockers_bitboard) | RookAttackBitboard(sq, blockers_bitboard);
     }
 
-    // TODO: promotions
     size_t GeneratePawnMoves(Board &board, std::vector<Move> &moves) {
         Color my_color = board.turn;
         Color opposite_color = (Color)(1 - my_color);
@@ -38,7 +37,9 @@ namespace lightknight::movegen {
 
         // For checking if a move leaves you in check
         uint64_t blockers = (board.color_bitboards[0] | board.color_bitboards[1]);
-        Square king_sq = BitboardToSquare(board.piece_bitboards[Piece::kWhiteKing + 6 * my_color]); 
+        
+        uint64_t king_bb = board.piece_bitboards[Piece::kWhiteKing + 6 * my_color];
+        Square king_sq = BitboardToSquare(king_bb); 
         
         // Itterate through the pawns.
         size_t new_moves_count = 0;
@@ -49,26 +50,30 @@ namespace lightknight::movegen {
             uint64_t dest_bb = Forward(pawn_bb, my_color);
             if (board.piece_bitboards[Piece::kEmpty] & dest_bb) {
                 uint64_t relevant_blockers = (blockers & ~pawn_bb) | dest_bb;
-                uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers);
-                uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers);
+                uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
+                uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
                 
                 bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
                 bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
-                
+                bool pawn_check = (PawnAttackBitboard(BitboardToSquare(king_bb), my_color) & ~dest_bb) & board.piece_bitboards[Piece::kWhitePawn + 6*opposite_color];
+                bool knight_check = (kKnightAttacks[BitboardToSquare(king_bb)] & ~dest_bb) & board.piece_bitboards[Piece::kWhiteKnight + 6*opposite_color];
+
                 // Legal move.
-                if (!(check_on_straights || check_on_diagonals)) {
-                    // Promotion.
-                    if (dest_bb & kRankPromotion[my_color]) {
-                        moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kQueen, MoveType::kPromotion));
-                        moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kRook, MoveType::kPromotion));
-                        moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kBishop, MoveType::kPromotion));
-                        moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kKnight, MoveType::kPromotion));
-                        new_moves_count += 4;
-                    }
-                    // Normal
-                    else {
-                        moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb)));
-                        new_moves_count++;
+                if (!(check_on_diagonals || check_on_straights || pawn_check || knight_check)) {
+                    if (!(check_on_straights || check_on_diagonals)) {
+                        // Promotion.
+                        if (dest_bb & kRankPromotion[my_color]) {
+                            moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kQueen, MoveType::kPromotion));
+                            moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kRook, MoveType::kPromotion));
+                            moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kBishop, MoveType::kPromotion));
+                            moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb), PromotionPieceType::kKnight, MoveType::kPromotion));
+                            new_moves_count += 4;
+                        }
+                        // Normal
+                        else {
+                            moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb)));
+                            new_moves_count++;
+                        }
                     }
                 }
             }
@@ -81,14 +86,16 @@ namespace lightknight::movegen {
             {
                 // Check if the move leaves you in check.
                 uint64_t relevant_blockers = (blockers & ~pawn_bb) | dest_bb;
-                uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers);
-                uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers);
+                uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
+                uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
                 
                 bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
                 bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
-                
+                bool pawn_check = (PawnAttackBitboard(BitboardToSquare(king_bb), my_color) & ~dest_bb) & board.piece_bitboards[Piece::kWhitePawn + 6*opposite_color];
+                bool knight_check = (kKnightAttacks[BitboardToSquare(king_bb)] & ~dest_bb) & board.piece_bitboards[Piece::kWhiteKnight + 6*opposite_color];
+
                 // Legal move.
-                if (!(check_on_straights || check_on_diagonals)) {
+                if (!(check_on_straights || check_on_diagonals || pawn_check || knight_check)) {
                     moves.push_back(Move(BitboardToSquare(pawn_bb), BitboardToSquare(dest_bb)));
                     new_moves_count++;
                 }
@@ -102,12 +109,19 @@ namespace lightknight::movegen {
 
                 // Check if the move leaves you in check.
                 uint64_t relevant_blockers = (blockers & ~pawn_bb) | dest_bb;
-                uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers);
-                uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers);
+                uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
+                uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
                 
                 bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
                 bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
-                
+                bool pawn_check = (PawnAttackBitboard(BitboardToSquare(king_bb), my_color) & ~dest_bb) & board.piece_bitboards[Piece::kWhitePawn + 6*opposite_color];
+                bool knight_check = (kKnightAttacks[BitboardToSquare(king_bb)] & ~dest_bb) & board.piece_bitboards[Piece::kWhiteKnight + 6*opposite_color];
+
+                if (check_on_diagonals || check_on_straights || pawn_check || knight_check) {
+                    pawn_attacks &= ~dest_bb;
+                    continue;
+                }
+
                 // Legal move.
                 if (!(check_on_straights || check_on_diagonals)) {
                     // Promotion.
@@ -143,17 +157,20 @@ namespace lightknight::movegen {
             while (en_passant_takers_bb) {
                 uint64_t origin_bb = LSB(en_passant_takers_bb);
                 uint64_t dest_bb = board.en_passant;
-                
+                uint64_t taken_bb = Backward(dest_bb, my_color);
+
                 // Check if this move leaves you in check.
-                uint64_t relevant_blockers = (blockers & ~origin_bb & ~Backward(dest_bb, my_color)) | dest_bb;
+                uint64_t relevant_blockers = (blockers & ~origin_bb & ~taken_bb) | dest_bb;
                 uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers);
                 uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers);
                 
                 bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
                 bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
-                
+                bool pawn_check = (PawnAttackBitboard(king_sq, my_color) & ~taken_bb) & board.piece_bitboards[Piece::kWhitePawn + 6*opposite_color];
+                bool knight_check = (kKnightAttacks[king_sq] & ~taken_bb) & board.piece_bitboards[Piece::kWhiteKnight + 6*opposite_color];
+
                 // It's a legal move.
-                if (!(check_on_straights || check_on_diagonals)) {
+                if (!(check_on_straights || check_on_diagonals || pawn_check || knight_check)) {
                     moves.push_back(Move(BitboardToSquare(origin_bb), BitboardToSquare(dest_bb), PromotionPieceType::kKnight, MoveType::kEnPassant));
                     new_moves_count++;
                 }
@@ -172,11 +189,11 @@ namespace lightknight::movegen {
 
         // For generating candidate moves for a knight.
         uint64_t knights_bb = board.piece_bitboards[Piece::kWhiteKnight + 6 * my_color];
-        uint64_t good_dests_bb = board.color_bitboards[opposite_color] | board.piece_bitboards[Piece::kEmpty];
         
         // For checking later if a move leaves you in check
         uint64_t blockers = (board.color_bitboards[0] | board.color_bitboards[1]);
-        Square king_sq = BitboardToSquare(board.piece_bitboards[Piece::kWhiteKing + 6 * my_color]); 
+        uint64_t king_bb = board.piece_bitboards[Piece::kWhiteKing + 6 * my_color];
+        Square king_sq = BitboardToSquare(king_bb); 
         
         size_t new_moves_count = 0;
 
@@ -184,28 +201,26 @@ namespace lightknight::movegen {
         while (knights_bb) {
             uint64_t origin_bb = LSB(knights_bb);
 
-            // If this knight is pinned to the king, wherever it may move it exposes the king. In that case, don't
-            // consider those moves. We check diagonal and straight lines coming from the king after taking the
-            // knight off the board. If we intersect enemy pieces that can attack us => BAD.
-            uint64_t relevant_blockers = blockers & ~origin_bb;
-            uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers);
-            uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers);
-
-            bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
-            bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
-            
-            if (check_on_diagonals || check_on_straights) {
-                knights_bb &= ~origin_bb;
-                continue;
-            }
-
             // Get the moves that don't capture one of your pieces.
-            uint64_t attacks_bb = kKnightAttacks[BitboardToSquare(origin_bb)];
-            attacks_bb &= good_dests_bb;
-            
+            uint64_t attacks_bb = kKnightAttacks[BitboardToSquare(origin_bb)] & (board.color_bitboards[opposite_color] | board.piece_bitboards[Piece::kEmpty]);
+        
             // Itterate through them
             while (attacks_bb) {
                 uint64_t dest_bb = LSB(attacks_bb);
+
+                uint64_t relevant_blockers = (blockers | dest_bb) & ~origin_bb;
+                uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
+                uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
+
+                bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
+                bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
+                bool pawn_check = (PawnAttackBitboard(BitboardToSquare(king_bb), my_color) & ~dest_bb) & board.piece_bitboards[Piece::kWhitePawn + 6*opposite_color];
+                bool knight_check = (kKnightAttacks[BitboardToSquare(king_bb)] & ~dest_bb) & board.piece_bitboards[Piece::kWhiteKnight + 6*opposite_color];
+
+                if (check_on_diagonals || check_on_straights || pawn_check || knight_check) {
+                    attacks_bb &= ~dest_bb;
+                    continue;
+                }
 
                 // Add to move list.
                 moves.push_back(Move(BitboardToSquare(origin_bb), BitboardToSquare(dest_bb)));
@@ -231,7 +246,8 @@ namespace lightknight::movegen {
         uint64_t good_dests_bb = board.color_bitboards[opposite_color] | board.piece_bitboards[Piece::kEmpty];
         
         // For checking later if a move leaves you in check.
-        Square king_sq = BitboardToSquare(board.piece_bitboards[Piece::kWhiteKing + 6 * my_color]); 
+        uint64_t king_bb = board.piece_bitboards[Piece::kWhiteKing + 6 * my_color];
+        Square king_sq = BitboardToSquare(king_bb); 
         uint64_t blockers = (board.color_bitboards[0] | board.color_bitboards[1]);
                 
         // Count number of new moves added.
@@ -254,11 +270,12 @@ namespace lightknight::movegen {
                 uint64_t straights = RookAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
                 uint64_t diagonals = BishopAttackBitboard(king_sq, relevant_blockers) & ~dest_bb;
                 
-                if (straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color])) {
-                    attacks_bb &= ~dest_bb;
-                    continue;
-                }
-                if (diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color])) {
+                bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
+                bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
+                bool pawn_check = (PawnAttackBitboard(BitboardToSquare(king_bb), my_color) & ~dest_bb) & board.piece_bitboards[Piece::kWhitePawn + 6*opposite_color];
+                bool knight_check = (kKnightAttacks[BitboardToSquare(king_bb)] & ~dest_bb) & board.piece_bitboards[Piece::kWhiteKnight + 6*opposite_color];
+
+                if (check_on_diagonals || check_on_straights || pawn_check || knight_check) {
                     attacks_bb &= ~dest_bb;
                     continue;
                 }
@@ -287,7 +304,8 @@ namespace lightknight::movegen {
         uint64_t good_dests_bb = board.color_bitboards[opposite_color] | board.piece_bitboards[Piece::kEmpty];
         
         // For checking later if a move leaves you in check.
-        Square king_sq = BitboardToSquare(board.piece_bitboards[Piece::kWhiteKing + 6 * my_color]); 
+        uint64_t king_bb = board.piece_bitboards[Piece::kWhiteKing + 6 * my_color];
+        Square king_sq = BitboardToSquare(king_bb); 
         uint64_t blockers = (board.color_bitboards[0] | board.color_bitboards[1]);
                 
         // Count number of new moves added.
@@ -312,8 +330,10 @@ namespace lightknight::movegen {
                 
                 bool check_on_straights = straights & (board.piece_bitboards[Piece::kWhiteRook + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
                 bool check_on_diagonals = diagonals & (board.piece_bitboards[Piece::kWhiteBishop + 6*opposite_color] | board.piece_bitboards[Piece::kWhiteQueen + 6*opposite_color]);
-                
-                if (check_on_diagonals || check_on_straights) {
+                bool pawn_check = (PawnAttackBitboard(BitboardToSquare(king_bb), my_color) & ~dest_bb) & board.piece_bitboards[Piece::kWhitePawn + 6*opposite_color];
+                bool knight_check = (kKnightAttacks[BitboardToSquare(king_bb)] & ~dest_bb) & board.piece_bitboards[Piece::kWhiteKnight + 6*opposite_color];
+
+                if (check_on_diagonals || check_on_straights || pawn_check || knight_check) {
                     attacks_bb &= ~dest_bb;
                     continue;
                 }

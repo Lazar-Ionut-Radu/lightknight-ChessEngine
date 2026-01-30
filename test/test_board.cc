@@ -47,9 +47,9 @@ void CheckBoard(const lightknight::Board& actual, const lightknight::Board& expe
     };
     for (std::size_t idx=0; idx < lightknight::kNumPieces; ++idx) {
         SECTION(bitboard_names[idx]) {
-            INFO("Expected: 0x" << std::hex << expected.bitboards[idx]);
-            INFO("Actual: 0x" << std::hex << actual.bitboards[idx]);
-            CHECK(actual.bitboards[idx] == expected.bitboards[idx]);
+            INFO("Expected: 0x" << std::hex << expected.piece_bitboards[idx]);
+            INFO("Actual: 0x" << std::hex << actual.piece_bitboards[idx]);
+            CHECK(actual.piece_bitboards[idx] == expected.piece_bitboards[idx]);
         }
     }
 
@@ -94,7 +94,7 @@ TEST_CASE("Board Initialization Valid FEN String", "[UnitTest][BoardInitializati
                     0x1000000000000000ULL,
                     0x0000FFFFFFFF0000ULL
                 },
-                lightknight::Colors::kWhite,
+                lightknight::Color::kWhite,
                 0b1111,
                 -1,
                 0,
@@ -118,7 +118,7 @@ TEST_CASE("Board Initialization Valid FEN String", "[UnitTest][BoardInitializati
                     0x6e94cb6ff3ff8873ULL
 
                 },
-                lightknight::Colors::kBlack,
+                lightknight::Color::kBlack,
                 0b1100,
                 -1,
                 1,
@@ -141,7 +141,7 @@ TEST_CASE("Board Initialization Valid FEN String", "[UnitTest][BoardInitializati
                     0x4000000000000000ULL,
                     0xbf1fbfe3eadf1dffULL
                 },
-                lightknight::Colors::kBlack,
+                lightknight::Color::kBlack,
                 0b0000,
                 16,
                 0,

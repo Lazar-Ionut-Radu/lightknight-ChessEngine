@@ -2,50 +2,72 @@
 #include <catch2/catch_test_macros.hpp>
 #include "movegen.h"
 #include "types.h"
+#include "board.h"
 #include <array>
+#include <vector>
 #include <tuple>
+#include <algorithm>
+#include <ranges>
+#include <string>
 
-TEST_CASE("Sliding Pieces Relevant Occupacy (for magic bitboards generation)", "[UnitTest][MoveGeneration][MagicBitboards]") {
-    static const std::array<std::pair<lightknight::Square, uint64_t>, 10> bishop_tests = {
-        std::make_pair(lightknight::Square::A1, 0x40201008040200ULL),
-        std::make_pair(lightknight::Square::H8, 0x40201008040200ULL),
-        std::make_pair(lightknight::Square::A8, 0x2040810204000ULL),
-        std::make_pair(lightknight::Square::H1, 0x2040810204000ULL),
-        std::make_pair(lightknight::Square::D1, 0x40221400ULL),
-        std::make_pair(lightknight::Square::H2, 0x4081020400000ULL),
-        std::make_pair(lightknight::Square::F8, 0x50080402000000ULL),
-        std::make_pair(lightknight::Square::C6, 0xa000a10204000ULL),
-        std::make_pair(lightknight::Square::E5, 0x44280028440200ULL),
-        std::make_pair(lightknight::Square::B7, 0x40810204000ULL)
-    };
-
-    static const std::array<std::pair<lightknight::Square, uint64_t>, 10> rook_tests = {
-        std::make_pair(lightknight::Square::A1, 0x101010101017eULL),
-        std::make_pair(lightknight::Square::H1, 0x8080808080807eULL),
-        std::make_pair(lightknight::Square::H8, 0x7e80808080808000ULL),
-        std::make_pair(lightknight::Square::H1, 0x8080808080807eULL),
-        std::make_pair(lightknight::Square::A5, 0x1017e01010100ULL),
-        std::make_pair(lightknight::Square::G1, 0x4040404040403eULL),
-        std::make_pair(lightknight::Square::G7, 0x3e404040404000ULL),
-        std::make_pair(lightknight::Square::E4, 0x1010106e101000ULL),
-        std::make_pair(lightknight::Square::D2, 0x8080808087600ULL),
-        std::make_pair(lightknight::Square::C5, 0x4047a04040400ULL)
-    };
-
+TEST_CASE("Sliding Piece Relevant Occupacy (for magic bitboards generation)", "[UnitTest][MoveGeneration][MagicBitboards]") {
     SECTION("Bishop") {
+        static const std::array<std::pair<lightknight::Square, uint64_t>, 10> bishop_tests = {
+            std::make_pair(lightknight::Square::A1, 0x40201008040200ULL),
+            std::make_pair(lightknight::Square::H8, 0x40201008040200ULL),
+            std::make_pair(lightknight::Square::A8, 0x2040810204000ULL),
+            std::make_pair(lightknight::Square::H1, 0x2040810204000ULL),
+            std::make_pair(lightknight::Square::D1, 0x40221400ULL),
+            std::make_pair(lightknight::Square::H2, 0x4081020400000ULL),
+            std::make_pair(lightknight::Square::F8, 0x50080402000000ULL),
+            std::make_pair(lightknight::Square::C6, 0xa000a10204000ULL),
+            std::make_pair(lightknight::Square::E5, 0x44280028440200ULL),
+            std::make_pair(lightknight::Square::B7, 0x40810204000ULL)
+        };
+
         for (auto& [sq, bb] : bishop_tests) {
-            CHECK(lightknight::movegen::kBishopRelevantOccupancy[static_cast<int>(sq)] == bb);
+            CHECK(lightknight::movegen::kBishopRelevantOccupancy[sq] == bb);
         }
     }
 
     SECTION("Rook") {
+        static const std::array<std::pair<lightknight::Square, uint64_t>, 10> rook_tests = {
+            std::make_pair(lightknight::Square::A1, 0x101010101017eULL),
+            std::make_pair(lightknight::Square::H1, 0x8080808080807eULL),
+            std::make_pair(lightknight::Square::H8, 0x7e80808080808000ULL),
+            std::make_pair(lightknight::Square::H1, 0x8080808080807eULL),
+            std::make_pair(lightknight::Square::A5, 0x1017e01010100ULL),
+            std::make_pair(lightknight::Square::G1, 0x4040404040403eULL),
+            std::make_pair(lightknight::Square::G7, 0x3e404040404000ULL),
+            std::make_pair(lightknight::Square::E4, 0x1010106e101000ULL),
+            std::make_pair(lightknight::Square::D2, 0x8080808087600ULL),
+            std::make_pair(lightknight::Square::C5, 0x4047a04040400ULL)
+        };
+
         for (auto& [sq, bb] : rook_tests) {
-            CHECK(lightknight::movegen::kRookRelevantOccupancy[static_cast<int>(sq)] == bb);
+            CHECK(lightknight::movegen::kRookRelevantOccupancy[sq] == bb);
         }
     }
 }
 
 TEST_CASE("Precomputed Attack Bitboards", "[UnitTest][MoveGeneration][MagicBitboards]") {
+    SECTION("Pawn") {
+        static const std::array<std::tuple<lightknight::Square, lightknight::Color, uint64_t>, 8> pawn_tests = {
+            std::make_tuple(lightknight::Square::C2, lightknight::Color::kWhite, 0xa0000ULL),
+            std::make_tuple(lightknight::Square::H4, lightknight::Color::kWhite, 0x4000000000ULL),
+            std::make_tuple(lightknight::Square::A8, lightknight::Color::kWhite, 0ULL),
+            std::make_tuple(lightknight::Square::F1, lightknight::Color::kWhite, 0x5000ULL),
+            std::make_tuple(lightknight::Square::B6, lightknight::Color::kBlack, 0x500000000ULL),
+            std::make_tuple(lightknight::Square::H4, lightknight::Color::kBlack, 0x400000ULL),
+            std::make_tuple(lightknight::Square::E1, lightknight::Color::kBlack, 0ULL),
+            std::make_tuple(lightknight::Square::C8, lightknight::Color::kBlack, 0xa000000000000ULL),
+        };
+
+        for (auto& [sq, color, bb] : pawn_tests) {
+            CHECK(lightknight::movegen::PawnAttackBitboard(sq, color) == bb);
+        }
+    };
+
     SECTION("Knight") {
         static const std::array<std::pair<lightknight::Square, uint64_t>, 8> knight_tests = {
             std::make_pair(lightknight::Square::A1, 0x20400ULL),
@@ -59,7 +81,7 @@ TEST_CASE("Precomputed Attack Bitboards", "[UnitTest][MoveGeneration][MagicBitbo
         };
 
         for (auto& [sq, bb] : knight_tests) {
-            CHECK(lightknight::movegen::kKnightAttacks[static_cast<int>(sq)] == bb);
+            CHECK(lightknight::movegen::kKnightAttacks[sq] == bb);
         }
     }
 
@@ -142,7 +164,60 @@ TEST_CASE("Precomputed Attack Bitboards", "[UnitTest][MoveGeneration][MagicBitbo
         };
 
         for (auto& [sq, bb] : king_tests) {
-            CHECK(lightknight::movegen::kKingAttacks[static_cast<int>(sq)] == bb);
+            CHECK(lightknight::movegen::kKingAttacks[sq] == bb);
+        }
+    }
+}
+
+void TestEqualMoveLists(std::vector<lightknight::Move> actual_moves,
+                        std::vector<lightknight::Move> expected_moves)
+{
+    REQUIRE(actual_moves.size() == expected_moves.size());
+
+    for (const auto& move : expected_moves) {
+        INFO("Expected move missing: " << move);
+        CHECK(std::ranges::find(actual_moves, move) != actual_moves.end());
+    }
+
+    for (const auto& move : actual_moves) {
+        INFO("Unexpected extra move: " << move);
+        CHECK(std::ranges::find(expected_moves, move) != expected_moves.end());
+    }
+}
+
+struct MoveGenerationTestStruct {
+    std::string name;
+    std::vector<lightknight::Move> expected_moves;
+};
+
+TEST_CASE("Generate Move" "[UnitTest][MoveGeneration]") {
+    SECTION("Pawn Moves") {
+        // White simple and double pown pushes.
+        static const std::array<MoveGenerationTestStruct, 1> pawn_tests = {
+            { // White 1 & 2 pawn pushes, no pins.
+                "rnbqkbnr/pppppppp/8/4P3/1P3P2/8/P1PP2PP/RNBQKBNR w KQkq b3 0 1",
+                {
+                    lightknight::Move(lightknight::Square::A2,lightknight::Square::A3),
+                    lightknight::Move(lightknight::Square::A2,lightknight::Square::A4),
+                    lightknight::Move(lightknight::Square::B4,lightknight::Square::B5),
+                    lightknight::Move(lightknight::Square::C2,lightknight::Square::C3),
+                    lightknight::Move(lightknight::Square::C2,lightknight::Square::C4),
+                    lightknight::Move(lightknight::Square::D2,lightknight::Square::D3),
+                    lightknight::Move(lightknight::Square::D2,lightknight::Square::D4),
+                    lightknight::Move(lightknight::Square::E5,lightknight::Square::E6),
+                    lightknight::Move(lightknight::Square::F4,lightknight::Square::F5),
+                    lightknight::Move(lightknight::Square::G2,lightknight::Square::G3),
+                    lightknight::Move(lightknight::Square::G2,lightknight::Square::G4),
+                    lightknight::Move(lightknight::Square::H2,lightknight::Square::H3),
+                    lightknight::Move(lightknight::Square::H2,lightknight::Square::H4)
+                }
+            }
+        };
+
+        for (auto &[fen_str, moves] : pawn_tests) {
+            lightknight::Board board = lightknight::Board(fen_str);
+
+            
         }
     }
 }

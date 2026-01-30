@@ -4,15 +4,18 @@
 #include <cstdint>
 #include <array>
 #include <string>
+#include <vector>
 #include "types.h"
 
 namespace lightknight {
     class Board {
     public:
         // Array of bitboards, one for each piece type, specifying their positions on the table.
-        std::array<uint64_t, kNumPieces> bitboards;
+        std::array<uint64_t, kNumPieces> piece_bitboards;
+        std::array<uint64_t, kNumColors> color_bitboards;
+
         uint8_t castling;
-        lightknight::Colors turn;
+        lightknight::Color turn;
         // Specifies the target square (if any) an en passant capture can be done.
         uint64_t en_passant;
         // Counts the number of half moves (one side) since the last capture or pawn advancement.
@@ -32,14 +35,18 @@ namespace lightknight {
 
         // Does not check the validity of the data, only for testing purposes.
         static Board FromRaw(
-            const std::array<uint64_t, kNumPieces>& bitboards,
-            Colors turn,
+            const std::array<uint64_t, kNumPieces>& piece_bitboards,
+            Color turn,
             uint8_t castling,
             int en_passant_square,
             int halfmoves,
             int fullmoves
         );
 
+        bool IsSquareAttacked(uint64_t square_bb, Color my_color) const;
+        bool IsInCheck(Color color) const;
+        bool IsCheckMate(std::vector<lightknight::Move> &moves) const;
+        bool IsStaleMate(std::vector<lightknight::Move> &moves) const;
     };
 } // namespace lightknight
 

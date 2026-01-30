@@ -2,12 +2,59 @@
 #define LIGHTKNIGHT_MOVEGEN_H
 
 #include "types.h"
+#include "board.h"
 #include <array>
 #include <vector>
 #include <cstdint>
 #include <cstddef>
 
-namespace lightknight::movegen {
+namespace lightknight::movegen {   
+    // For generating and making/unmaking castling moves.
+    struct CastleInfo {
+        uint64_t king_origin;
+        uint64_t king_destination;
+        uint64_t rook_origin;
+        uint64_t rook_destination;
+        uint64_t needed_empty; // Squares that need to be empty.
+        uint64_t needed_safe; // Squares that need to be not attacked.
+    };
+
+    // To be indexed by enum Castle. I know, redundant, I don't care.
+    static constexpr CastleInfo kCastleInfo[16] = {
+        {}, // unused
+        // White Queen Side Castle - 1
+        {
+            SquareToBitboard(Square::E1), SquareToBitboard(Square::C1), 
+            SquareToBitboard(Square::A1), SquareToBitboard(Square::D1),
+            SquareToBitboard(Square::B1) | SquareToBitboard(Square::C1) | SquareToBitboard(Square::D1),
+            SquareToBitboard(Square::C1) | SquareToBitboard(Square::D1)
+        },
+        // White King Side Castle - 2
+        {
+            SquareToBitboard(Square::E1), SquareToBitboard(Square::G1), 
+            SquareToBitboard(Square::H1), SquareToBitboard(Square::F1),
+            SquareToBitboard(Square::F1) | SquareToBitboard(Square::G1),
+            SquareToBitboard(Square::F1) | SquareToBitboard(Square::G1)
+        }, 
+        {}, // unused
+        // BLack Queen Side Castle - 4
+        {
+            SquareToBitboard(Square::E8), SquareToBitboard(Square::C8), 
+            SquareToBitboard(Square::A8), SquareToBitboard(Square::D8),
+            SquareToBitboard(Square::B8) | SquareToBitboard(Square::C8) | SquareToBitboard(Square::D8),
+            SquareToBitboard(Square::C8) | SquareToBitboard(Square::D8)
+        }, 
+        {}, {}, {}, // unused
+        // King Side Castle - 8
+        {
+            SquareToBitboard(Square::E8), SquareToBitboard(Square::G8), 
+            SquareToBitboard(Square::H8), SquareToBitboard(Square::F8),
+            SquareToBitboard(Square::F8) | SquareToBitboard(Square::G8),
+            SquareToBitboard(Square::F8) | SquareToBitboard(Square::G8)
+        },
+        {}, {}, {}, {}, {}, {}, {}
+    };
+
     // The shift and magics for precomputing sliding piece attacks. Find out more at:
     // https://www.chessprogramming.org/Magic_Bitboards
     inline constexpr int kBishopMagicShift = 64 - 9;  
@@ -43,8 +90,8 @@ namespace lightknight::movegen {
         std::array<uint64_t, kNumSquares> bishop_masks = {0ULL};
 
         for (uint8_t i = 0; i < kNumSquares; i++) {
-            int rank = Rank(static_cast<Square>(i));
-            int file = File(static_cast<Square>(i));
+            int rank = Rank((Square)(i));
+            int file = File((Square)(i));
             
             // NE
             for (int r = rank + 1, f = file + 1; r <= 6 && f <= 6; r++, f++)
@@ -64,13 +111,12 @@ namespace lightknight::movegen {
         }
         return bishop_masks;
     }
-
     consteval std::array<uint64_t, kNumSquares> PrecomputeRookRelevantOccupancy() {
         std::array<uint64_t, kNumSquares> rook_masks = {0ULL};
 
         for (uint8_t i = 0; i < kNumSquares; i++) {
-            int rank = Rank(static_cast<Square>(i));
-            int file = File(static_cast<Square>(i));
+            int rank = Rank((Square)(i));
+            int file = File((Square)(i));
             
             // Horizontal
             for (int f = file + 1; f <= 6; f++) rook_masks[i] |= SquareToBitboard(GetSquare(rank, f));
@@ -82,13 +128,30 @@ namespace lightknight::movegen {
         }
         return rook_masks;
     }
+    
+    inline constexpr std::array<uint64_t, kNumSquares> kBishopRelevantOccupancy = PrecomputeBishopRelevantOccupancy();
+    inline constexpr std::array<uint64_t, kNumSquares> kRookRelevantOccupancy = PrecomputeRookRelevantOccupancy();
+        
+    // Precompute pawn attacks, the 2 diagonal squares in front.
+    consteval std::array<uint64_t, 2 * kNumSquares> PrecomputePawnAttacks() {
+        std::array<uint64_t, 2 * kNumSquares> pawn_attacks = {0ULL};
 
+        for (size_t sq = 0; sq < kNumSquares; sq++) {
+            uint64_t sq_bb = SquareToBitboard((Square)sq);
+
+            // White & black pawn attacks
+            pawn_attacks[sq] = NorthWest(sq_bb) | NorthEast(sq_bb);
+            pawn_attacks[kNumSquares + sq] = SouthWest(sq_bb) | SouthEast(sq_bb);
+        }
+
+        return pawn_attacks;
+    }
     // Precomputed knight attacks, without taking into account the occupancy of the destination square.
     consteval std::array<uint64_t, kNumSquares> PrecomputeKnightAttacks() {
         std::array<uint64_t, kNumSquares> knight_attacks = {0ULL};
 
         for (uint8_t i = 0; i < kNumSquares; i++) {
-            uint64_t bb = SquareToBitboard(static_cast<Square>(i));
+            uint64_t bb = SquareToBitboard((Square)(i));
 
             uint64_t attacks = 0ULL;
             attacks |= North(NorthWest(bb));
@@ -105,12 +168,12 @@ namespace lightknight::movegen {
 
         return knight_attacks;
     }
-    
+    // Precompute king attacks, just the 8 (or less) positions surrounding the origin square.
     consteval std::array<uint64_t, kNumSquares> PrecomputeKingAttacks() {
         std::array<uint64_t, kNumSquares> king_attacks = {0ULL};
         
         for (uint8_t i = 0; i < kNumSquares; i++) {
-            uint64_t bb = SquareToBitboard(static_cast<Square>(i));
+            uint64_t bb = SquareToBitboard((Square)(i));
 
             uint64_t attacks = 0ULL;
             attacks |= North(bb);
@@ -127,10 +190,6 @@ namespace lightknight::movegen {
 
         return king_attacks;
     }
-
-    inline constexpr std::array<uint64_t, kNumSquares> kBishopRelevantOccupancy = PrecomputeBishopRelevantOccupancy();
-    inline constexpr std::array<uint64_t, kNumSquares> kRookRelevantOccupancy = PrecomputeRookRelevantOccupancy();
-    
     // Precompute bishop attacks using magic bitboards.
     consteval std::array<uint64_t, kBishopAttacksArraySize> PrecomputeBishopAttacks() {
         std::array<uint64_t, kBishopAttacksArraySize> bishop_attacks = {0ULL};
@@ -205,8 +264,7 @@ namespace lightknight::movegen {
 
         return bishop_attacks;
     }
-
-    // Precompute bishop attacks using magic bitboards.
+    // Precompute rook attacks using magic bitboards.
     consteval std::array<uint64_t, kRookAttacksArraySize> PrecomputeRookAttacks() {
         std::array<uint64_t, kRookAttacksArraySize> rook_attacks = {0ULL};
         
@@ -279,15 +337,28 @@ namespace lightknight::movegen {
         return rook_attacks;
     }
 
+    inline constexpr std::array<uint64_t, 2 * kNumSquares> kPawnAttacks = PrecomputePawnAttacks();
     inline constexpr std::array<uint64_t, kNumSquares> kKnightAttacks = PrecomputeKnightAttacks();
     inline constexpr std::array<uint64_t, kBishopAttacksArraySize> kBishopAttacks = PrecomputeBishopAttacks();
     inline constexpr std::array<uint64_t, kRookAttacksArraySize> kRookAttacks = PrecomputeRookAttacks();
     inline constexpr std::array<uint64_t, kNumSquares> kKingAttacks = PrecomputeKingAttacks();
 
     // Functions to get attacks.
+    uint64_t PawnAttackBitboard(Square sq, Color color);
     uint64_t BishopAttackBitboard(Square sq, uint64_t blockers_bitboard);
     uint64_t RookAttackBitboard(Square sq, uint64_t blockers_bitboard);
     uint64_t QueenAttackBitboard(Square sq, uint64_t blockers_bitboard);
+
+    // [TODO]: I'm gonna need to change vector at some point to something faster, for now it's gonna do.
+    // Also, this is gon' be straight legal moves.
+    size_t GeneratePawnMoves(Board &board, std::vector<Move> &moves);
+    size_t GenerateKnightMoves(Board &board, std::vector<Move> &moves);
+    size_t GenerateBishopMoves(Board &board, std::vector<Move> &moves);
+    size_t GenerateRookMoves(Board &board, std::vector<Move> &moves);
+    size_t GenerateQueenMoves(Board &board, std::vector<Move> &moves);
+    size_t GenerateKingMoves(Board &board, std::vector<Move> &moves);
+    size_t GenerateMoves(Board &board, std::vector<Move> &moves);
+
 } // namespace lightknight::movegen
 
 #endif // LIGHTKNIGHT_MOVEGEN_H
